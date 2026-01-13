@@ -1,16 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:logicore/utilities/colors.dart';
+import 'package:logicore/widgets/CustomButton.dart';
+import 'package:logicore/widgets/ActivityItemWidget.dart';
+import 'package:logicore/widgets/HomeShimmerLoading.dart';
+
+import '../../controllers/Requestor/requestor_controller.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
+
+  final controller = Get.put(RequestorController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kColorPureWhite,
-      body: SingleChildScrollView(
+      backgroundColor: const Color.fromARGB(255, 249, 246, 246),
+      body: Obx(() {
+        // Show shimmer loading when loading and no cached data
+        if (controller.isLoading.value &&
+            controller.activePR.value == 0 &&
+            controller.received.value == 0 &&
+            controller.recentActivities.isEmpty) {
+          return const HomeShimmerLoading();
+        }
+
+        return _buildContent();
+      }),
+    );
+  }
+
+  Widget _buildContent() {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.fetchDashboard();
+      },
+      backgroundColor: kColorPrimary,
+      color: Colors.white,
+      displacement: 60,
+      strokeWidth: 3,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -20,18 +50,29 @@ class HomeScreen extends StatelessWidget {
                 color: kColorPureWhite,
                 boxShadow: [
                   BoxShadow(
-                    color: kColorMediumGrey.withOpacity(0.3),
+                    color: kColorMediumGrey.withValues(alpha: 0.3),
                     spreadRadius: 2,
                     blurRadius: 5,
                     offset: const Offset(0, 3),
                   ),
                 ],
               ),
-              padding:
-                  const EdgeInsets.only(left: 22.0, top: 45.0, bottom: 15.0),
-              child: Text(
-                "Logicore",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              padding: const EdgeInsets.only(
+                  left: 22.0, top: 45.0, bottom: 10.0, right: 22.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Logicore",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout, size: 25),
+                    onPressed: () {
+                      controller.logout();
+                    },
+                  ),
+                ],
               ),
             ),
             Container(
@@ -62,7 +103,7 @@ class HomeScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: kColorMediumGrey.withOpacity(0.15),
+                                color: kColorMediumGrey.withValues(alpha: 0.15),
                                 spreadRadius: 1,
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
@@ -99,14 +140,12 @@ class HomeScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              const Text(
-                                "12",
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: kColorPureBlack,
-                                ),
-                              ),
+                              Obx(() => Text(
+                                    controller.activePR.value.toString(),
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold),
+                                  ))
                             ],
                           ),
                         ),
@@ -120,7 +159,7 @@ class HomeScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: kColorMediumGrey.withOpacity(0.15),
+                                color: kColorMediumGrey.withValues(alpha: 0.15),
                                 spreadRadius: 1,
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
@@ -157,14 +196,12 @@ class HomeScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              const Text(
-                                "05",
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: kColorPureBlack,
-                                ),
-                              ),
+                              Obx(() => Text(
+                                    controller.received.value.toString(),
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold),
+                                  ))
                             ],
                           ),
                         ),
@@ -180,7 +217,7 @@ class HomeScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: kColorMediumGrey.withOpacity(0.15),
+                          color: kColorMediumGrey.withValues(alpha: 0.15),
                           spreadRadius: 1,
                           blurRadius: 8,
                           offset: const Offset(0, 2),
@@ -202,14 +239,12 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              "03",
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: kColorPureBlack,
-                              ),
-                            ),
+                            Obx(() => Text(
+                                  controller.pendingActions.value.toString(),
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
+                                ))
                           ],
                         ),
                         Container(
@@ -228,41 +263,11 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  SizedBox(
-                    width: Get.width,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Handle Create Purchase Request action
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(255, 66, 133, 244),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.add,
-                            color: kColorPureWhite,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Create Purchase Request",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: kColorPureWhite,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Custombutton(
+                    text: "Create New Purchase Request",
+                    onPressed: () {
+                      Get.toNamed('/createPurchaseRequest');
+                    },
                   ),
                   const SizedBox(height: 30),
                   Row(
@@ -277,10 +282,64 @@ class HomeScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: kColorPrimary)),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
+            SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: kColorPureWhite,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: kColorMediumGrey.withValues(alpha: 0.15),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Obx(() {
+                if (controller.recentActivities.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No recent activities',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: kColorGrey,
+                      ),
+                    ),
+                  );
+                }
+
+                return Column(
+                  children:
+                      controller.recentActivities.asMap().entries.map((entry) {
+                    final activity = entry.value;
+                    final isLast =
+                        entry.key == controller.recentActivities.length - 1;
+
+                    return ActivityItemWidget(
+                      icon: ActivityItemWidget.getIconFromString(activity.icon),
+                      iconBg: ActivityItemWidget.getIconBackgroundColor(
+                          activity.status),
+                      title: activity.title,
+                      subtitle: activity.subtitle ?? '',
+                      badgeText: activity.statusBadge,
+                      badgeColor: ActivityItemWidget.getBadgeColor(
+                          activity.statusBadge),
+                      showDivider: !isLast,
+                      onTap: () {
+                        Get.toNamed('/prDetail',
+                            arguments: {'prId': activity.id});
+                      },
+                    );
+                  }).toList(),
+                );
+              }),
+            )
           ],
         ),
       ),
