@@ -66,7 +66,7 @@ class CreatePurchaseRequest extends StatelessWidget {
                     children: [
                       InfoContainer(
                         message:
-                            "Data legal adalah data untuk administrasi karyawan yang diatur oleh pihak manajemen.",
+                            "Purchase Request digunakan untuk mengajukan permintaan pembelian barang yang kamu butuhkan agar dapat diproses oleh tim terkait.",
                         icon: Icons.info,
                       ),
                       SizedBox(height: 20),
