@@ -19,6 +19,7 @@ class CreatePRController extends GetxController {
 
   // Form controllers
   final quantityController = TextEditingController();
+  final priceController = TextEditingController();
   final notesController = TextEditingController();
 
   @override
@@ -76,6 +77,16 @@ class CreatePRController extends GetxController {
         return;
       }
 
+      // Parse unit price (optional but recommended)
+      double? unitPrice;
+      if (priceController.text.isNotEmpty) {
+        unitPrice = double.tryParse(priceController.text.replaceAll(',', ''));
+        if (unitPrice == null || unitPrice < 0) {
+          Get.snackbar('Error', 'Invalid unit price');
+          return;
+        }
+      }
+
       isLoading.value = true;
 
       final box = GetStorage();
@@ -96,7 +107,7 @@ class CreatePRController extends GetxController {
           PRItem(
             itemId: selectedItemId.value,
             quantity: quantity,
-            estimatedUnitPrice: null,
+            estimatedUnitPrice: unitPrice,
             notes: notesController.text.isEmpty ? null : notesController.text,
           ),
         ],
@@ -114,6 +125,7 @@ class CreatePRController extends GetxController {
 
       // Clear form
       quantityController.clear();
+      priceController.clear();
       notesController.clear();
       selectedItemId.value = '';
       selectedItemName.value = '';
@@ -166,6 +178,7 @@ class CreatePRController extends GetxController {
   @override
   void onClose() {
     quantityController.dispose();
+    priceController.dispose();
     notesController.dispose();
     super.onClose();
   }

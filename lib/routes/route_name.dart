@@ -4,4 +4,5 @@ abstract class RoutesName {
   static const loginPage = '/loginPage';
   static const createPurchaseRequest = '/createPurchaseRequest';
   static const prDetail = '/prDetail';
+  static const requestPage = '/requestPage';
 }

@@ -39,20 +39,20 @@ class BottomBar extends StatelessWidget {
               ),
               label: 'Requests',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.inventory_2_rounded,
-                size: 24,
-              ),
-              label: 'Inventory',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.history_rounded,
-                size: 24,
-              ),
-              label: 'History',
-            ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(
+            //     Icons.inventory_2_rounded,
+            //     size: 24,
+            //   ),
+            //   label: 'Inventory',
+            // ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(
+            //     Icons.history_rounded,
+            //     size: 24,
+            //   ),
+            //   label: 'History',
+            // ),
           ],
           currentIndex: controller.selectedIndex.value,
           onTap: (int index) {

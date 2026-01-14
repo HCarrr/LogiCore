@@ -163,6 +163,13 @@ class CreatePurchaseRequest extends StatelessWidget {
                       ),
                       SizedBox(height: 12),
                       CustomTextField(
+                        label: "Harga Satuan (Rp)",
+                        inputType: InputType.number,
+                        hintText: "Masukkan harga per unit",
+                        controller: controller.priceController,
+                      ),
+                      SizedBox(height: 12),
+                      CustomTextField(
                         label: "Notes",
                         inputType: InputType.text,
                         hintText: "Enter additional notes",

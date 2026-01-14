@@ -16,6 +16,7 @@ class PRDetailScreen extends StatefulWidget {
 class _PRDetailScreenState extends State<PRDetailScreen> {
   PRDetailModel? prDetail;
   bool isLoading = true;
+  bool isSubmitting = false;
   String? error;
 
   @override
@@ -55,6 +56,250 @@ class _PRDetailScreenState extends State<PRDetailScreen> {
     } catch (e) {
       setState(() {
         error = e.toString().replaceAll('Exception: ', '');
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _submitPR() async {
+    if (prDetail == null) return;
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    try {
+      final box = GetStorage();
+      final token = box.read('token');
+
+      if (token == null) {
+        Get.snackbar(
+          'Error',
+          'Authentication required',
+          backgroundColor: Colors.red.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      await PurchaseRequestService.submitPR(token, prDetail!.id);
+
+      Get.snackbar(
+        'Success',
+        'Purchase Request submitted successfully!',
+        backgroundColor: Colors.green.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+
+      // Reload PR detail to get updated status
+      _loadPRDetail();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString().replaceAll('Exception: ', ''),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isSubmitting = false;
+      });
+    }
+  }
+
+  Future<void> _deletePR() async {
+    if (prDetail == null) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Purchase Request'),
+        content: Text(
+          'Are you sure you want to delete ${prDetail!.prNumber}? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final box = GetStorage();
+      final token = box.read('token');
+
+      if (token == null) {
+        Get.snackbar(
+          'Error',
+          'Authentication required',
+          backgroundColor: Colors.red.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      await PurchaseRequestService.deletePR(token, prDetail!.id);
+
+      Get.snackbar(
+        'Success',
+        'Purchase Request deleted successfully!',
+        backgroundColor: Colors.green.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+
+      // Navigate back to previous screen
+      Get.back();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString().replaceAll('Exception: ', ''),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void _showEditDialog() {
+    if (prDetail == null || prDetail!.items.isEmpty) return;
+
+    final item = prDetail!.items.first;
+    final quantityController =
+        TextEditingController(text: item.quantity.toString());
+    final priceController = TextEditingController(
+      text: item.estimatedUnitPrice > 0
+          ? item.estimatedUnitPrice.toStringAsFixed(0)
+          : '',
+    );
+    final notesController = TextEditingController(text: prDetail!.notes ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Purchase Request'),
+        backgroundColor: kColorPureWhite,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: quantityController,
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: priceController,
+                decoration: const InputDecoration(
+                  labelText: 'Harga Satuan (Rp)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _updatePR(
+                quantity: int.tryParse(quantityController.text),
+                price: double.tryParse(priceController.text),
+                notes:
+                    notesController.text.isEmpty ? null : notesController.text,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: kColorPrimary),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updatePR({int? quantity, double? price, String? notes}) async {
+    if (prDetail == null) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final box = GetStorage();
+      final token = box.read('token');
+
+      if (token == null) {
+        Get.snackbar(
+          'Error',
+          'Authentication required',
+          backgroundColor: Colors.red.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      await PurchaseRequestService.updatePR(
+        token,
+        prDetail!.id,
+        quantity: quantity,
+        estimatedUnitPrice: price,
+        notes: notes,
+      );
+
+      Get.snackbar(
+        'Success',
+        'Purchase Request updated successfully!',
+        backgroundColor: Colors.green.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+
+      // Reload PR detail to get updated data
+      setState(() {
+        isLoading = true;
+      });
+      await _loadPRDetail();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString().replaceAll('Exception: ', ''),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+      setState(() {
         isLoading = false;
       });
     }
@@ -125,12 +370,19 @@ class _PRDetailScreenState extends State<PRDetailScreen> {
         children: [
           _buildStatusCard(),
           const SizedBox(height: 16),
+          _buildStatusTimeline(),
+          const SizedBox(height: 16),
           _buildInfoCard(),
           const SizedBox(height: 16),
           _buildItemsCard(),
           if (prDetail!.approvals.isNotEmpty) ...[
             const SizedBox(height: 16),
             _buildApprovalsCard(),
+          ],
+          // Show action buttons only when status is DRAFT
+          if (prDetail!.status.toUpperCase() == 'DRAFT') ...[
+            const SizedBox(height: 24),
+            _buildDraftActionButtons(),
           ],
         ],
       ),
@@ -227,6 +479,232 @@ class _PRDetailScreenState extends State<PRDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusTimeline() {
+    final List<String> steps = [
+      'Draft',
+      'Submitted',
+      'Approved',
+      'Ordered',
+      'Delivered'
+    ];
+    final String currentStatus = prDetail!.status.toUpperCase();
+
+    // Get current step index based on status
+    int currentStepIndex = 0;
+    switch (currentStatus) {
+      case 'DRAFT':
+        currentStepIndex = 0;
+        break;
+      case 'SUBMITTED':
+        currentStepIndex = 1;
+        break;
+      case 'APPROVED':
+        currentStepIndex = 2;
+        break;
+      case 'ORDERED':
+        currentStepIndex = 3;
+        break;
+      case 'DELIVERED':
+        currentStepIndex = 4;
+        break;
+      case 'REJECTED':
+        currentStepIndex = -1; // Special case for rejected
+        break;
+      default:
+        currentStepIndex = 0;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: kColorPureWhite,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: kColorMediumGrey.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Status Timeline',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: List.generate(steps.length * 2 - 1, (index) {
+              if (index.isEven) {
+                // Step circle
+                final stepIndex = index ~/ 2;
+                final isCompleted = stepIndex < currentStepIndex;
+                final isCurrent = stepIndex == currentStepIndex;
+                final isRejected =
+                    currentStatus == 'REJECTED' && stepIndex == 1;
+
+                return Expanded(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: isRejected
+                              ? Colors.red
+                              : (isCompleted || isCurrent)
+                                  ? Colors.green
+                                  : Colors.grey[300],
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isRejected
+                                ? Colors.red
+                                : (isCompleted || isCurrent)
+                                    ? Colors.green
+                                    : Colors.grey[300]!,
+                            width: 2,
+                          ),
+                        ),
+                        child: (isCompleted || isCurrent)
+                            ? Icon(
+                                isRejected ? Icons.close : Icons.check,
+                                color: Colors.white,
+                                size: 18,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        steps[stepIndex],
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: (isCompleted || isCurrent)
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                          color: (isCompleted || isCurrent)
+                              ? Colors.black87
+                              : Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                // Connector line
+                final stepIndex = index ~/ 2;
+                final isCompleted = stepIndex < currentStepIndex;
+
+                return Expanded(
+                  child: Container(
+                    height: 3,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: isCompleted ? Colors.green : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                );
+              }
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDraftActionButtons() {
+    return Column(
+      children: [
+        // Edit and Delete buttons row
+        Row(
+          children: [
+            // Edit button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _showEditDialog,
+                icon: const Icon(
+                  Icons.edit,
+                  size: 18,
+                  color: kColorPureWhite,
+                ),
+                label: const Text('Edit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kColorPrimary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Delete button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _deletePR,
+                icon:
+                    const Icon(Icons.delete, size: 18, color: kColorPureWhite),
+                label: const Text('Delete'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Submit button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: isSubmitting ? null : _submitPR,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: isSubmitting
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.send, size: 20, color: kColorPureWhite),
+                      SizedBox(width: 8),
+                      Text(
+                        'Submit Purchase Request',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 

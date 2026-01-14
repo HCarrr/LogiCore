@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:logicore/utilities/colors.dart';
 
 import '../../controllers/auth/auth_controller.dart';
 
@@ -30,56 +31,7 @@ class Loginpage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // Top section with back arrow and "Get Started" button
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: const Icon(
-                        Icons.arrow_back_ios,
-                        size: 22,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          "Don't have an account?",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2D3266),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Get Started',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Logicore title
-              const SizedBox(height: 20),
+              SizedBox(height: Get.height * 0.05),
               const Text(
                 'Logicore',
                 style: TextStyle(
@@ -90,6 +42,20 @@ class Loginpage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22.0),
+                child: Container(
+                  width: double.infinity,
+                  height: Get.width * 0.04,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
               // White card section
               Expanded(
                 child: Container(
@@ -157,7 +123,6 @@ class Loginpage extends StatelessWidget {
                                 ),
                               )),
                           const SizedBox(height: 32),
-                          // Sign in button
                           SizedBox(
                             width: double.infinity,
                             height: 54,
@@ -169,7 +134,7 @@ class Loginpage extends StatelessWidget {
                                       end: Alignment.centerRight,
                                       colors: [
                                         Color(0xFF4A50E8),
-                                        Color(0xFFB06CCF),
+                                        Color(0xFF7B5FD6),
                                       ],
                                     ),
                                   ),
@@ -203,71 +168,6 @@ class Loginpage extends StatelessWidget {
                                           ),
                                   ),
                                 )),
-                          ),
-                          const SizedBox(height: 24),
-                          // Forgot password
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              'Forgot your password?',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          // Divider with "Or sign in with"
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.grey[300],
-                                  thickness: 1,
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'Or sign in with',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.grey[300],
-                                  thickness: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          // Social login buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildSocialButton(
-                                  onPressed: () {},
-                                  icon: 'G',
-                                  label: 'Google',
-                                  isGoogle: true,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildSocialButton(
-                                  onPressed: () {},
-                                  icon: 'f',
-                                  label: 'Facebook',
-                                  isGoogle: false,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -346,67 +246,6 @@ class Loginpage extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSocialButton({
-    required VoidCallback onPressed,
-    required String icon,
-    required String label,
-    required bool isGoogle,
-  }) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        side: BorderSide(
-          color: Colors.grey[300]!,
-          width: 1,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isGoogle)
-            Text(
-              'G',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                foreground: Paint()
-                  ..shader = const LinearGradient(
-                    colors: [
-                      Color(0xFF4285F4),
-                      Color(0xFFEA4335),
-                      Color(0xFFFBBC05),
-                      Color(0xFF34A853),
-                    ],
-                  ).createShader(const Rect.fromLTWH(0, 0, 20, 20)),
-              ),
-            )
-          else
-            const Text(
-              'f',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1877F2),
-              ),
-            ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: isGoogle ? Colors.grey[700] : const Color(0xFF1877F2),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

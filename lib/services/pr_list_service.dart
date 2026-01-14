@@ -111,6 +111,14 @@ class PRListService {
   /// Filter PRs by status
   static List<PRListItem> filterByStatus(List<PRListItem> prs, String status) {
     if (status.isEmpty || status == 'ALL') return prs;
+
+    // PENDING filter should include SUBMITTED status
+    if (status == 'PENDING') {
+      return prs
+          .where((pr) => pr.status == 'PENDING' || pr.status == 'SUBMITTED')
+          .toList();
+    }
+
     return prs.where((pr) => pr.status == status).toList();
   }
 }

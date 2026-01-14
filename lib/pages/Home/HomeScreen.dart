@@ -276,11 +276,16 @@ class HomeScreen extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                       Spacer(),
-                      Text("See All",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: kColorPrimary)),
+                      GestureDetector(
+                        onTap: () {
+                          Get.toNamed('/requestPage');
+                        },
+                        child: Text("See All",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: kColorPrimary)),
+                      ),
                     ],
                   ),
                 ],

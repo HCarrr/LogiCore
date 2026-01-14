@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:logicore/pages/Requests/RequestsScreen.dart';
 import 'package:logicore/pages/login/LoginPage.dart';
 import 'package:logicore/pages/mainPage.dart';
 import 'package:logicore/pages/PurchaseRequest/PRDetailScreen.dart';
@@ -16,5 +17,6 @@ class AppPages {
         name: RoutesName.createPurchaseRequest,
         page: () => CreatePurchaseRequest()),
     GetPage(name: RoutesName.prDetail, page: () => const PRDetailScreen()),
+    GetPage(name: RoutesName.requestPage, page: () => RequestsScreen()),
   ];
 }

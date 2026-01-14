@@ -16,8 +16,8 @@ class MainPage extends StatelessWidget {
   final pages = [
     HomeScreen(),
     RequestsScreen(),
-    const InventoryScreen(),
-    const HistoryScreen(),
+    // const InventoryScreen(),
+    // const HistoryScreen(),
   ];
 
   @override
